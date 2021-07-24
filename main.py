@@ -8,40 +8,45 @@ pygame.init()
 WIDTH, HEIGHT = size = (800, 600)
 
 screen = pygame.display.set_mode(size)
-pygame.display.set_caption("Rocket")
+pygame.display.set_caption("RocketBlaster")
 
 running = True
 clock = pygame.time.Clock()
 
 rocket_image = pygame.image.load(AssetPaths.ROCKET)
 missile_image = pygame.image.load(AssetPaths.MISSILE)
-rocket_pos = (screen.get_width()/2, screen.get_height()-rocket_image.get_height()-50)
+
+missiles = []
+
+rocket_pos = (screen.get_width() / 2, screen.get_height() - rocket_image.get_height() - 50)
+
 rect = rocket_image.get_rect()
 rocket_center = (rect.centery + rocket_pos[0]), (rect.centerx + rocket_pos[1])
 
-print(rocket_pos)
-bullet_pos = rocket_pos
-bullet_x, bullet_y = 0, 0
-
 rocket_angle = 0
 
-bullet_speed = 10
+bullet_speed = 5
+max_bullets = 2
 missile_angle = rocket_angle
 
-fired = False
+
+class Missile:
+
+    def __init__(self, angle=0, bx=0, by=0):
+        self.bullet_x = bx
+        self.bullet_y = by
+        self.angle = angle
+        self.bullet_pos = rocket_pos
 
 
 def fire_bullet():
-    global fired
 
-    if fired:
-        bullet = pygame.transform.rotate(missile_image, -missile_angle)
-        screen.blit(bullet, bullet_pos)
+    for x in missiles:
+        missile = pygame.transform.rotate(missile_image, -x.angle)
+        screen.blit(missile, x.bullet_pos)
 
 
-def rocket(mousepos: tuple[float, float]):
-    global rocket_angle, rocket_dir, bullet_x, bullet_y, rocket_pos
-
+def get_bullet_pos(mousepos: tuple[float, float]):
     mouse_x, mouse_y = mousepos
 
     if mouse_x > screen.get_width() - 100:
@@ -56,15 +61,17 @@ def rocket(mousepos: tuple[float, float]):
     adj_dist = mouse_x - rocket_center[0]
     opp_dist = mouse_y - rocket_center[1]
 
+    hyp = math.sqrt(opp_dist**2 + adj_dist**2)
+
+    return adj_dist, opp_dist, hyp
+
+
+def rocket(mousepos: tuple[float, float]):
+    global rocket_angle, rocket_pos
+
+    adj_dist, opp_dist, hyp = get_bullet_pos(mousepos)
+
     rocket_angle = math.degrees(math.atan2(opp_dist, -adj_dist)) + 90
-    # print(rocket_angle, mouse_x, mouse_y)
-
-    if not fired:
-        hyp = math.hypot(opp_dist, adj_dist)
-
-        bullet_x = adj_dist/hyp * bullet_speed
-        bullet_y = opp_dist/hyp * bullet_speed
-
     rotated = pygame.transform.rotate(rocket_image, rocket_angle)
 
     screen.blit(rotated, rocket_pos)
@@ -78,24 +85,28 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-        elif not fired and event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
 
-            # if -43 <= rocket_angle <= 43:
-            fired = True
-            missile_angle = -rocket_angle
+            if len(missiles) < max_bullets:
+                adj_dist, opp_dist, hyp = get_bullet_pos(pygame.mouse.get_pos())
+
+                bullet_x = adj_dist / hyp * bullet_speed
+                bullet_y = opp_dist / hyp * bullet_speed
+
+                missel = Missile(-rocket_angle, bullet_x, bullet_y)
+                missiles.append(missel)
+
+                print(len(missiles))
 
     rocket(pygame.mouse.get_pos())
     fire_bullet()
 
-    if fired:
-        if 0 < bullet_pos[0] > screen.get_width() or bullet_pos[1] < 0:
-            fired = False
-            bullet_pos = rocket_pos
+    for bullet in missiles.copy():
+        if 0 < bullet.bullet_pos[0] > screen.get_width() or bullet.bullet_pos[1] < 0:
+            missiles.remove(bullet)
 
         else:
-
-            bullet_pos = (bullet_x+bullet_pos[0], bullet_y+bullet_pos[1])
-            # print(bullet_pos)
+            bullet.bullet_pos = (bullet.bullet_x + bullet.bullet_pos[0], bullet.bullet_y + bullet.bullet_pos[1])
 
     pygame.display.flip()
     clock.tick(60)
