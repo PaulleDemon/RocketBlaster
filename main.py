@@ -21,6 +21,8 @@ rocket_image = pygame.image.load(AssetPaths.ROCKET)
 missile_image = pygame.image.load(AssetPaths.MISSILE)
 monster_image = pygame.image.load(AssetPaths.SPACE_MONSTER)
 
+pygame.display.set_icon(rocket_image)
+
 rocket_pos = (screen.get_width() / 2, screen.get_height() - rocket_image.get_height() - 50)
 
 rect = rocket_image.get_rect()
