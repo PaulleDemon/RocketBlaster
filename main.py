@@ -130,7 +130,7 @@ def move_bullet():
         screen.blit(rotated_bullet, bullet.bullet_pos)
 
 
-def get_adj_opp(mousepos: tuple[float, float]):
+def get_adj_opp(mousepos):
     mouse_x, mouse_y = mousepos
 
     if mouse_x > screen.get_width() - 100:
@@ -150,7 +150,7 @@ def get_adj_opp(mousepos: tuple[float, float]):
     return adj_dist, opp_dist, hyp
 
 
-def rocket(mousepos: tuple[float, float]):
+def rocket(mousepos):
     global rocket_angle, rocket_pos
 
     adj_dist, opp_dist, hyp = get_adj_opp(mousepos)
